@@ -3,12 +3,14 @@ import { exec } from "child_process";
 import inquirer from "inquirer";
 import ora from "ora";
 import chalk from "chalk";
+import fs from "fs";
+import path from "path";
 
 function runCommand(command, options = {}) {
   return new Promise((resolve, reject) => {
     exec(command, options, (error, stdout, stderr) => {
       if (error) {
-        return reject(error);
+        return reject(new Error(`${error.message}\n${stderr}`));
       }
       resolve(stdout);
     });
@@ -37,6 +39,14 @@ async function run() {
         name: "projectName",
         message: "Project name:",
         default: "app-name",
+        validate: (input) => {
+          if (!input) return "Project name cannot be empty.";
+          if (input === ".") return true;
+          if (fs.existsSync(path.resolve(process.cwd(), input))) {
+            return `Directory "${input}" already exists. Please choose a different project name.`;
+          }
+          return true;
+        },
       },
       {
         type: "confirm",
@@ -57,8 +67,9 @@ async function run() {
   }
 
   const branch = answers.languageSupport ? "lang" : "main";
-  const scaffoldCommand = `npx degit esteban-cz/nextjs-starter#${branch} ${answers.projectName}`;
-
+  const target = answers.projectName === "." ? "" : answers.projectName;
+  const scaffoldCommand =
+    `npx degit esteban-cz/nextjs-starter#${branch} ${target}`.trim();
   const scaffoldSpinner = ora("Creating Next.js app...").start();
 
   try {
@@ -67,12 +78,24 @@ async function run() {
 
     if (answers.installDependencies) {
       const installSpinner = ora("Installing all dependencies...").start();
-      await runCommand("npm i --force", { cwd: answers.projectName });
+      const cwdDir =
+        answers.projectName === "." ? process.cwd() : answers.projectName;
+      await runCommand("npm i --force", { cwd: cwdDir });
       installSpinner.succeed("Dependencies installed successfully!");
     }
-    console.log("\n");
+
+    console.log(chalk.green.bold("\nYour Next.js app is ready!"));
+    if (answers.projectName !== ".") {
+      console.log(chalk.cyan(`\n   cd ${answers.projectName}`));
+    }
+    if (!answers.installDependencies) {
+      console.log(chalk.cyan("\n   npm i [--force]"));
+    }
+    console.log(chalk.cyan("\n   npm run dev\n"));
+    console.log(chalk.bold("Happy coding!\n"));
   } catch (error) {
     scaffoldSpinner.fail(`Error: ${error.message}`);
+    process.exit(1);
   }
 }
 
