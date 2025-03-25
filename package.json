@@ -1,0 +1,15 @@
+{
+  "name": "create-nextjs-cli",
+  "version": "1.0.0",
+  "type": "module",
+  "bin": {
+    "create-nextjs": "./index.js"
+  },
+  "author": "esteban-cz",
+  "dependencies": {
+    "chalk": "^5.4.1",
+    "commander": "^13.1.0",
+    "inquirer": "^12.5.0",
+    "ora": "^8.2.0"
+  }
+}
