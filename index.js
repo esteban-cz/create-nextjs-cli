@@ -15,8 +15,12 @@ function runCommand(command, options = {}) {
   });
 }
 
+process.on("SIGINT", () => {
+  console.log(chalk.red("\n✖ Aborted by user."));
+  process.exit(1);
+});
+
 async function run() {
-  // Print ASCII art at the top
   const asciiArt = String.raw`
  __ _  ____  _  _  ____      __  ____    ____  _  _    ____  ____  ____  _  _  _  _  __  
 (  ( \(  __)( \/ )(_  _)   _(  )/ ___)  (  _ \( \/ )  (  __)/ ___)(_  _)( \/ )( \/ )/  \ 
@@ -25,26 +29,32 @@ async function run() {
 `;
   console.log(chalk.bold(chalk.magenta(asciiArt)));
 
-  const answers = await inquirer.prompt([
-    {
-      type: "input",
-      name: "projectName",
-      message: "Project name:",
-      default: "app-name",
-    },
-    {
-      type: "confirm",
-      name: "languageSupport",
-      message: "Do you want language support?",
-      default: false,
-    },
-    {
-      type: "confirm",
-      name: "installDependencies",
-      message: "Install dependencies?",
-      default: true,
-    },
-  ]);
+  let answers;
+  try {
+    answers = await inquirer.prompt([
+      {
+        type: "input",
+        name: "projectName",
+        message: "Project name:",
+        default: "app-name",
+      },
+      {
+        type: "confirm",
+        name: "languageSupport",
+        message: "Do you want language support?",
+        default: false,
+      },
+      {
+        type: "confirm",
+        name: "installDependencies",
+        message: "Install dependencies?",
+        default: true,
+      },
+    ]);
+  } catch (err) {
+    console.log(chalk.red("\n✖ Aborted by user."));
+    process.exit(1);
+  }
 
   const branch = answers.languageSupport ? "lang" : "main";
   const scaffoldCommand = `npx degit esteban-cz/nextjs-starter#${branch} ${answers.projectName}`;
