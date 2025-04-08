@@ -3,6 +3,7 @@ import { exec } from "child_process";
 import inquirer from "inquirer";
 import ora from "ora";
 import chalk from "chalk";
+import gradient from "gradient-string";
 import fs from "fs";
 import path from "path";
 
@@ -22,14 +23,22 @@ process.on("SIGINT", () => {
   process.exit(1);
 });
 
+const custom = gradient(["#5c00d6", "#671eac", "#d047d4", "#ff4b9a"]);
+
 async function run() {
-  const asciiArt = String.raw`
- __ _  ____  _  _  ____      __  ____    ____  _  _    ____  ____  ____  _  _  _  _  __  
-(  ( \(  __)( \/ )(_  _)   _(  )/ ___)  (  _ \( \/ )  (  __)/ ___)(_  _)( \/ )( \/ )/  \ 
-/    / ) _)  )  (   )(  _ / \) \\___ \   ) _ ( )  /    ) _) \___ \  )(   )  /  )  ((  O )
-\_)__)(____)(_/\_) (__)(_)\____/(____/  (____/(__/    (____)(____/ (__) (__/  (_/\_)\__\
+  const rawAscii = String.raw`
+  ___  ____  ____   __  ____  ____    ____  ____  _  _  _  _  __      __   ____  ____ 
+ / __)(  _ \(  __) / _\(_  _)(  __)  / ___)(_  _)( \/ )( \/ )/  \    / _\ (  _ \(  _ \
+( (__  )   / ) _) /    \ )(   ) _)   \___ \  )(   )  /  )  ((  O )  /    \ ) __/ ) __/
+ \___)(__\_)(____)\_/\_/(__) (____)  (____/ (__) (__/  (_/\_)\__\)  \_/\_/(__)  (__)  
 `;
-  console.log(chalk.bold(chalk.magenta(asciiArt)));
+
+  console.log(chalk.bold(custom.multiline(rawAscii)));
+  console.log(
+    chalk.cyan.bold(
+      "\n                   Build smart. Build fast. Build with StyxQ 🚀\n"
+    )
+  );
 
   let answers;
   try {
@@ -37,13 +46,14 @@ async function run() {
       {
         type: "input",
         name: "projectName",
-        message: "Project name:",
-        default: "app-name",
+        message: "What would you like to name your app?",
+        default: "styxq-nextjs-app",
         validate: (input) => {
-          if (!input) return "Project name cannot be empty.";
+          if (!input)
+            return "⚠️  Project name cannot be empty. (type `.` for current directory)";
           if (input === ".") return true;
           if (fs.existsSync(path.resolve(process.cwd(), input))) {
-            return `Directory "${input}" already exists. Please choose a different project name.`;
+            return `⚠️  Directory "${input}" already exists. Please choose a different name.`;
           }
           return true;
         },
@@ -51,13 +61,13 @@ async function run() {
       {
         type: "confirm",
         name: "languageSupport",
-        message: "Do you want language support?",
+        message: "Add language support with translations?",
         default: false,
       },
       {
         type: "confirm",
         name: "installDependencies",
-        message: "Install dependencies?",
+        message: "Install all dependencies now?",
         default: true,
       },
     ]);
@@ -74,7 +84,7 @@ async function run() {
 
   try {
     await runCommand(scaffoldCommand);
-    scaffoldSpinner.succeed("Project created successfully!");
+    scaffoldSpinner.succeed(`${answers.projectName} scaffolded successfully!`);
 
     if (answers.installDependencies) {
       const installSpinner = ora("Installing all dependencies...").start();
@@ -84,16 +94,22 @@ async function run() {
       installSpinner.succeed("Dependencies installed successfully!");
     }
 
-    console.log(chalk.green.bold("\nYour Next.js app is ready!"));
-    console.log(chalk.green("\nNext steps:"));
+    console.log(
+      `${chalk.green("\n✔ ")}${chalk.cyan.bold(
+        "Your StyxQ-powered Next.js app is ready!"
+      )}`
+    );
+    console.log(chalk.cyan("\nNext steps:"));
     if (answers.projectName !== ".") {
-      console.log(chalk.cyan(`\n   cd ${answers.projectName}`));
+      console.log(
+        `${chalk.cyan("  cd ")}${chalk.cyan.bold(answers.projectName)}`
+      );
     }
     if (!answers.installDependencies) {
-      console.log(chalk.cyan("\n   npm i"));
+      console.log(chalk.cyan("  npm i"));
     }
-    console.log(chalk.cyan("\n   npm run dev\n"));
-    console.log(chalk.bold("Happy coding!\n"));
+    console.log(chalk.cyan("  npm run dev\n"));
+    console.log(chalk.bold("Happy coding with StyxQ! 🚀\n"));
   } catch (error) {
     scaffoldSpinner.fail(`Error: ${error.message}`);
     process.exit(1);
