@@ -66,7 +66,7 @@ async function run() {
     process.exit(1);
   }
 
-  const branch = answers.languageSupport ? "lang" : "main";
+  const branch = answers.languageSupport ? "locale" : "main";
   const target = answers.projectName === "." ? "" : answers.projectName;
   const scaffoldCommand =
     `npx degit esteban-cz/nextjs-starter#${branch} ${target}`.trim();
@@ -80,16 +80,17 @@ async function run() {
       const installSpinner = ora("Installing all dependencies...").start();
       const cwdDir =
         answers.projectName === "." ? process.cwd() : answers.projectName;
-      await runCommand("npm i --force", { cwd: cwdDir });
+      await runCommand("npm i", { cwd: cwdDir });
       installSpinner.succeed("Dependencies installed successfully!");
     }
 
     console.log(chalk.green.bold("\nYour Next.js app is ready!"));
+    console.log(chalk.green("\nNext steps:"));
     if (answers.projectName !== ".") {
       console.log(chalk.cyan(`\n   cd ${answers.projectName}`));
     }
     if (!answers.installDependencies) {
-      console.log(chalk.cyan("\n   npm i [--force]"));
+      console.log(chalk.cyan("\n   npm i"));
     }
     console.log(chalk.cyan("\n   npm run dev\n"));
     console.log(chalk.bold("Happy coding!\n"));
