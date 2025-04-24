@@ -60,9 +60,16 @@ async function run() {
       },
       {
         type: "confirm",
+        name: "supabaseUsage",
+        message: "Use supabase in your project?",
+        default: true,
+      },
+      {
+        type: "confirm",
         name: "languageSupport",
         message: "Add language support with translations?",
         default: false,
+        when: (answers) => answers.supabaseUsage === false,
       },
       {
         type: "confirm",
@@ -76,7 +83,11 @@ async function run() {
     process.exit(1);
   }
 
-  const branch = answers.languageSupport ? "locale" : "main";
+  const branch = answers.supabaseUsage
+    ? "supabase"
+    : answers.languageSupport
+    ? "locale"
+    : "main";
   const target = answers.projectName === "." ? "" : answers.projectName;
   const scaffoldCommand =
     `npx degit esteban-cz/nextjs-starter#${branch} ${target}`.trim();
